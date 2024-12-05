@@ -3,20 +3,19 @@ import os
 from datetime import datetime
 import json
 import pickle
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from sympy.core.numbers import Infinity
 
 
 class DocumentEmbedding:
-    def __init__(self,dataset_location):
-        self.indexing_path = dataset_location
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+    def __init__(self,dataset_location, model):
+        self.dataset_location = dataset_location
+        self.model = model
         self.folders = {}
         self.doc_vectors = []
         self.document_embeddings = "../documtent_embeddings"
-        if not os.path.exists(self.indexing_path):
-            raise Exception("ERROR: path not found:" + self.indexing_path)
+        if not os.path.exists(self.dataset_location):
+            raise Exception("ERROR: path not found:" + self.dataset_location)
         if not os.path.isdir(self.document_embeddings):
             os.makedirs(self.document_embeddings)
         if os.path.isfile(self.document_embeddings+"/vector_representations"):
@@ -25,26 +24,13 @@ class DocumentEmbedding:
 
     def pretrain_dataset(self, reindex=False):
         if reindex or not os.path.isfile(self.document_embeddings+"/vector_representations"):
-            print("indexing path: ", self.indexing_path)
+            print("indexing path: ", self.dataset_location)
             self.doc_vectors = []
-            for d in os.listdir(self.indexing_path):
+            for d in os.listdir(self.dataset_location):
                 if d.endswith('.txt'):
-                    file_path = os.path.join(self.indexing_path, d)
+                    file_path = os.path.join(self.dataset_location, d)
                     self.__index_document(file_path)
             pickle.dump(self.doc_vectors, open(self.document_embeddings+"/vector_representations","wb"))
-
-        query_vector = np.array(self.model.encode("types of road hugger tires"))
-        best_match = 9999999
-        best_vector = None
-        print(len(self.doc_vectors))
-        for i in self.doc_vectors:
-            pathh = i[0]
-            x = i[1]
-            coss = abs(cosine_similarity(query_vector.reshape(1, len(query_vector)), x.reshape(1, len(query_vector))))
-            if coss < best_match:
-                best_match = coss
-                best_vector = pathh
-        print(best_match, best_vector)
 
 
     def __index_document(self, path):

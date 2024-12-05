@@ -1,45 +1,15 @@
 from documentEmbedding import DocumentEmbedding
+from queryProcessing import QueryProcessing
+from testQueries import *
+from sentence_transformers import SentenceTransformer
 
-d = DocumentEmbedding("../../datasets/full_docs_small")
-d.pretrain_dataset(True)
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
+documentEmbedding = DocumentEmbedding("../../datasets/full_docs_small", model)
+documentEmbedding.pretrain_dataset(False)
 
+queryProcessing = QueryProcessing(documentEmbedding)
 
-# from transformers import BertTokenizer
-# tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-#
-#
-# file = open("../datasets/full_docs_small/output_1.txt")
-# text = file.read()
-# text
-#
-#
-# tokenized_text = tokenizer(text, truncation=True, return_tensors="pt")
-# print(tokenized_text)
-
-
-
-
-# from sentence_transformers import SentenceTransformer
-#
-# # 1. Load a pretrained Sentence Transformer model
-# model = SentenceTransformer("all-MiniLM-L6-v2")
-#
-# # The sentences to encode
-# sentences = [
-#     "The weather is lovely today.",
-#     "It's so sunny outside!",
-#     "He drove to the stadium.",
-# ]
-#
-# # 2. Calculate embeddings by calling model.encode()
-# embeddings = model.encode(sentences)
-# print(embeddings.shape)
-# # [3, 384]
-#
-# # 3. Calculate the embedding similarities
-# similarities = model.similarity(embeddings, embeddings)
-# print(similarities)
-# # tensor([[1.0000, 0.6660, 0.1046],
-# #         [0.6660, 1.0000, 0.1411],
-# #         [0.1046, 0.1411, 1.0000]])
+test_queries(queryProcessing,True)
+#print(evaluation(queryProcessing,True))
+#print(queryProcessing.processQuery("what agency can i report a scammer concerning my computer", 5))
