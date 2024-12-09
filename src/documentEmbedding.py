@@ -13,7 +13,7 @@ class DocumentEmbedding:
         self.model = model
         self.folders = {}
         self.doc_vectors = []
-        self.document_embeddings = "../documtent_embeddings"
+        self.document_embeddings = "../document_embeddings"
         if not os.path.exists(self.dataset_location):
             raise Exception("ERROR: path not found:" + self.dataset_location)
         if not os.path.isdir(self.document_embeddings):
