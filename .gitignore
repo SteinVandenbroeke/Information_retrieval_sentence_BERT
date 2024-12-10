@@ -1,2 +1,4 @@
 .venv
 .idea
+document_embeddings/
+src/__pycache__/
