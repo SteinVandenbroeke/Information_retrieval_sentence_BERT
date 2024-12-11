@@ -33,7 +33,7 @@ class DocumentEmbedding:
                 if d.endswith('.txt'):
                     file_path = os.path.join(self.dataset_location, d)
                     self.__index_document(file_path, self.doc_vectors, self.model.tokenizer)
-                if counter%1000 == 0:
+                if counter%1 == 0:
                     print(counter)
                 counter+=1
             pickle.dump(self.doc_vectors, open(self.document_embeddings+self.pre_save_path,"wb"))
@@ -58,7 +58,7 @@ class DocumentEmbedding:
             files = [d for d in os.listdir(self.dataset_location) if d.endswith('.txt')]
             chunks = [files[i:i + chunks_cnt] for i in range(0, len(files), chunks_cnt)]
 
-            pool = concurrent.futures.ThreadPoolExecutor(max_workers=12)
+            pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
             all_thread_results = []
             for chunk in chunks:
                 all_thread_results.append(pool.submit(self.__process_chunk, chunk, len(all_thread_results)))
