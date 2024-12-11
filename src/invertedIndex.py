@@ -4,7 +4,7 @@ from operator import itemgetter
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
-
+from sklearn.preprocessing import StandardScaler
 
 class InvertedIndex:
     def __init__(self, embeddings, cluster_depth = 1):

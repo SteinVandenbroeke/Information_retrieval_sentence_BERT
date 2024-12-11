@@ -1,8 +1,6 @@
 import datetime
 import os
 
-from documentEmbedding import DocumentEmbedding
-
 import pandas as pd
 
 
@@ -77,7 +75,7 @@ def evaluation(queryProcessing, small=True):
     sumedP1 = 0.0
     sumedR1 = 0.0
     total = 0
-    for q in query_data.values:
+    for q in query_data.values[:1000]:
         query_id = q[0]
         query = q[1]
         results = []
