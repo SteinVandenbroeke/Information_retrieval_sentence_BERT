@@ -1,34 +1,41 @@
 import concurrent.futures
+import heapq
+from operator import itemgetter
 
 import numpy as np
 import os
 import pickle
 
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 from transformers import AutoTokenizer
+from heapq import heappush, nlargest
+from src.queryProcessor import QueryProcessor
 
-
-class DocumentEmbedding:
-    def __init__(self,dataset_location, model, pre_save_path, mean_encodings = False, mean_overlap = 20, mean_lenght = 256):
+class DocumentEmbedding(QueryProcessor):
+    def __init__(self,dataset_location:str, model:SentenceTransformer, file_name:str, mean_encodings:bool = False, mean_overlap:int = 20, mean_lenght:int = 256):
         self.dataset_location = dataset_location
         self.model = model
         self.folders = {}
         self.doc_vectors = []
-        self.document_embeddings = "../document_embeddings"
-        self.pre_save_path = "/" + pre_save_path
+        self.save_folder = "../document_embeddings"
+        self.file_name = "/" + file_name
+        if mean_encodings:
+            self.file_name += "_mean_" + str(mean_overlap) + "_" + str(mean_lenght)
         self.mean_encodings = mean_encodings
         self.mean_overlap = mean_overlap
         self.mean_lenght = mean_lenght
         if not os.path.exists(self.dataset_location):
             raise Exception("ERROR: path not found:" + self.dataset_location)
-        if not os.path.isdir(self.document_embeddings):
-            os.makedirs(self.document_embeddings)
-        if os.path.isfile(self.document_embeddings+self.pre_save_path):
-            self.doc_vectors = pickle.load(open(self.document_embeddings+self.pre_save_path,"rb"))
+        if not os.path.isdir(self.save_folder):
+            os.makedirs(self.save_folder)
+        if os.path.isfile(self.save_folder + self.file_name):
+            self.doc_vectors = pickle.load(open(self.save_folder + self.file_name, "rb"))
 
 
-    def pretrain_dataset(self, reindex=False):
+    def pretrain_dataset(self, reindex:bool=False):
         counter = 0
-        if reindex or not os.path.isfile(self.document_embeddings+self.pre_save_path):
+        if reindex or not os.path.isfile(self.save_folder + self.file_name):
             print("indexing path: ", self.dataset_location)
             self.doc_vectors = []
             for d in os.listdir(self.dataset_location):
@@ -38,7 +45,7 @@ class DocumentEmbedding:
                 if counter%1 == 0:
                     print(counter)
                 counter+=1
-            pickle.dump(self.doc_vectors, open(self.document_embeddings+self.pre_save_path,"wb"))
+            pickle.dump(self.doc_vectors, open(self.save_folder + self.file_name, "wb"))
 
     def __process_chunk(self, chunk, thread_id):
         chunk_vectors = []
@@ -53,14 +60,15 @@ class DocumentEmbedding:
             counter += 1
         return chunk_vectors
 
-    def pretrain_dataset_parallel(self, reindex=False, chunks_cnt=30000):
-        if reindex or not os.path.isfile(self.document_embeddings + self.pre_save_path):
+    def pretrain_dataset_parallel(self, reindex:bool=False, threads_cnt:int=20):
+        if reindex or not os.path.isfile(self.save_folder + self.file_name):
             print("Parallel indexing path: ", self.dataset_location)
 
             files = [d for d in os.listdir(self.dataset_location) if d.endswith('.txt')]
+            chunks_cnt = int(len(files) / threads_cnt)
             chunks = [files[i:i + chunks_cnt] for i in range(0, len(files), chunks_cnt)]
 
-            pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
+            pool = concurrent.futures.ThreadPoolExecutor(max_workers=threads_cnt)
             all_thread_results = []
             for chunk in chunks:
                 all_thread_results.append(pool.submit(self.__process_chunk, chunk, len(all_thread_results)))
@@ -72,7 +80,7 @@ class DocumentEmbedding:
                 self.doc_vectors.extend(result.result())
 
             # Save combined vectors
-            pickle.dump(self.doc_vectors, open(self.document_embeddings + self.pre_save_path, "wb"))
+            pickle.dump(self.doc_vectors, open(self.save_folder + self.file_name, "wb"))
 
     def __get_mean_encoding(self, content, length, overlap, tokenizer):
         chunks = []
@@ -94,3 +102,20 @@ class DocumentEmbedding:
             # summary_text = self.summarize_large_document(doc_text)
             array_to_add.append(tuple((path, np.array(self.model.encode(doc_text)))))
 
+
+    def processQueryLoop(self, query: str, k:int):
+        best_matches = []
+        query_vector = np.array(self.model.encode(query))
+        for doc_path_vector in self.document_embedding.doc_vectors:
+            doc_path = doc_path_vector[0]
+            doc_vector = doc_path_vector[1]
+            cos_sim = cosine_similarity(query_vector.reshape(1, len(query_vector)), doc_vector.reshape(1, len(query_vector)))
+            heappush(best_matches, (cos_sim, doc_path))
+
+        return [match[1] for match in nlargest(k, best_matches, itemgetter(0))]
+
+    def processQuery(self, query: str, k:int):
+        query_vector = np.array(self.model.encode(query))
+        cos_similarities = cosine_similarity(query_vector.reshape(1, len(query_vector)), [e[1] for e in self.doc_vectors])[0]
+        result_indexes = nlargest(k,enumerate(cos_similarities), itemgetter(1))
+        return [self.doc_vectors[match[0]][0]for match in result_indexes]

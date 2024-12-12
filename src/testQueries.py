@@ -3,6 +3,8 @@ import os
 
 import pandas as pd
 
+from src.queryProcessor import QueryProcessor
+
 
 def test_queries(queryProcessing, small = True):
     print("Testing queries for ", "small" if small else "big", " database:")
@@ -59,7 +61,7 @@ def create_result_csv(queryProcessing, small = True):
     print("test csv time: ", end_time_query_test - start_time)
 
 
-def evaluation(queryProcessing, small=True):
+def evaluation(query_processing: QueryProcessor, small=True):
     start_time = datetime.datetime.now()
 
     print("Testing queries for ", "small" if small else "big", " database:")
@@ -81,7 +83,7 @@ def evaluation(queryProcessing, small=True):
         query_id = q[0]
         query = q[1]
         results = []
-        for i in queryProcessing.processQuery(query,10):
+        for i in query_processing.processQuery(query,10):
             results.append(int(i.replace(".txt","").split("output_")[1]))
         query_result_doc = query_result_data[query_result_data['Query_number'] == query_id]['doc_number'].tolist()
         #print("Result doc", 10, query_id, query_result_doc, results)

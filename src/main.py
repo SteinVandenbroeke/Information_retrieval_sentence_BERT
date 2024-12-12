@@ -1,99 +1,43 @@
 from documentEmbedding import DocumentEmbedding
 from clustertedDocumentEmbedding import ClustertedDocumentEmbedding
-from queryProcessing import QueryProcessing
 from testQueries import *
 from sentence_transformers import SentenceTransformer
 import time
 
-###FIRST PART###
-# model = SentenceTransformer("all-MiniLM-L6-v2")
-#
-# documentEmbedding = DocumentEmbedding("../../datasets/full_docs_small", model)
-# documentEmbedding.pretrain_dataset(False)
-#
-# queryProcessing = QueryProcessing(documentEmbedding)
-#
-# test_queries(queryProcessing,True)
-# print(evaluation(queryProcessing,True))
-
 def part_one():
-    documentEmbeddingSmall = DocumentEmbedding("../../datasets/full_docs_small", model, "vector_representations_large_mean_threaded", True)
-    documentEmbeddingSmall.pretrain_dataset_parallel(True, 70)
-
-
-
-
-###SECOND PART###
-if __name__ == '__main__':
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-
-    documentEmbedding = DocumentEmbedding("../../datasets/full_docs", model, "vector_representations_large_mean_threaded", True)
-
+    print("====Part One====")
+    documentEmbeddingSmall = DocumentEmbedding("../../datasets/full_docs_small", model, "vector_representations_small", True)
     print("start pretrain_dataset")
     time_start = time.perf_counter()
-    documentEmbedding.pretrain_dataset_parallel(True, 70)
+    documentEmbeddingSmall.pretrain_dataset_parallel(False)
     time_elapsed = (time.perf_counter() - time_start)
-    print("non threaded", time_elapsed)
+    print("Embedding creation/loading time: ", time_elapsed)
+    print("Evaluation")
+    evaluation(documentEmbeddingSmall, True)
+    print("\n")
 
-    invertedIndex = ClustertedDocumentEmbedding(documentEmbedding)
-    #
-    invertedIndex.kMeansCluster(10)
+def part_two():
+    print("====Part Two====")
+    documentEmbedding = DocumentEmbedding("../../datasets/full_docs", model,"vector_representations_large", True)
+    print("start pretrain_dataset")
+    time_start = time.perf_counter()
+    documentEmbedding.pretrain_dataset_parallel(False)
+    time_elapsed = (time.perf_counter() - time_start)
+    print("Embedding creation/loading time:", time_elapsed)
 
-    # print("start query")
-    # time_start = time.perf_counter()
-    # #print(queryProcessing.processQueryLoop("how much is a cost to run disneyland", 10))
-    # print(queryProcessing.processQuery("how much is a cost to run disneyland", 10))
-    # time_elapsed = (time.perf_counter() - time_start)
-    # print(time_elapsed)
-    #
-    # print(evaluation(queryProcessing))
+    print("Create clusters")
+    time_start = time.perf_counter()
+    clusterted_doc_embeddings = ClustertedDocumentEmbedding(documentEmbedding)
+    clusterted_doc_embeddings.kMeansCluster(10)
+    time_elapsed = (time.perf_counter() - time_start)
+    print("Cluster creation/loading time:", time_elapsed)
 
-    # time_start = time.perf_counter()
-    # test_queries(queryProcessing, True)
-    # time_elapsed = (time.perf_counter() - time_start)
-    # print(time_elapsed)
-    #
-    # print("trained")
-    invertedIndex = ClustertedDocumentEmbedding(documentEmbedding)
-    #
-    invertedIndex.kMeansCluster(5)
-    #
-    # time_start = time.perf_counter()
-    # test_queries(invertedIndex, False)
-    # time_elapsed = (time.perf_counter() - time_start)
-    # print(time_elapsed)
-    evaluation1 = evaluation(invertedIndex, False)
-
-    print(evaluation1)
-    #print("threaded", evaluation(queryProcessing1, False))
-    # print("search")
-    # # 5. Query processing: embed the query and find the closest cluster
-    # query = "how much is a cost to run disneyland"
-    # query_embedding = model.encode([query])
-    # print("start query")
-    # time_start = time.perf_counter()
-    # print("Relevant Documents: ", invertedIndex.getDocuments(query_embedding, 10, 10))
-    # time_elapsed = (time.perf_counter() - time_start)
-    # print(time_elapsed)
+    print("Evaluation")
+    evaluation(clusterted_doc_embeddings, False)
+    print("\n")
 
 
-
-
-
-
-
-
-
-
-
-    # # GPT
-    # similarities = cosine_similarity(query_embedding, invertedIndex.centroids)
-    # print(similarities)
-    # closest_cluster = np.argmax(similarities)
-    # print(closest_cluster)
-    # print(len(invertedIndex.inverted_index))
-    # # Retrieve relevant documents from the closest cluster
-    # relevant_docs = invertedIndex.inverted_index[closest_cluster]
-    #
-    # # Print relevant document indices
-    # print("Relevant Documents: ", relevant_docs)
+if __name__ == '__main__':
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    part_one()
+    part_two()
