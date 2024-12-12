@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 
-class InvertedIndex:
+class ClustertedDocumentEmbedding:
     def __init__(self, embeddings, cluster_depth = 1):
         self.embeddings = embeddings.doc_vectors
         self.centroids = []

@@ -8,7 +8,7 @@ from transformers import AutoTokenizer
 
 
 class DocumentEmbedding:
-    def __init__(self,dataset_location, model, pre_save_path, mean_encodings = False):
+    def __init__(self,dataset_location, model, pre_save_path, mean_encodings = False, mean_overlap = 20, mean_lenght = 256):
         self.dataset_location = dataset_location
         self.model = model
         self.folders = {}
@@ -16,6 +16,8 @@ class DocumentEmbedding:
         self.document_embeddings = "../document_embeddings"
         self.pre_save_path = "/" + pre_save_path
         self.mean_encodings = mean_encodings
+        self.mean_overlap = mean_overlap
+        self.mean_lenght = mean_lenght
         if not os.path.exists(self.dataset_location):
             raise Exception("ERROR: path not found:" + self.dataset_location)
         if not os.path.isdir(self.document_embeddings):
@@ -86,7 +88,7 @@ class DocumentEmbedding:
             doc_text = f.read()
 
         if self.mean_encodings and doc_text != "":
-            array_to_add.append(tuple((path, self.__get_mean_encoding(doc_text, 256, 20, tokenizer))))
+            array_to_add.append(tuple((path, self.__get_mean_encoding(doc_text, self.mean_lenght, self.mean_overlap, tokenizer))))
         elif doc_text != "":
             array_to_add.append(tuple((path, np.array(self.model.encode(doc_text)))))
 
