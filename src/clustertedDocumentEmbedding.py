@@ -18,11 +18,16 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         self.centroids = []
         self.inverted_index = {}
         self.cluster_depth = cluster_depth
+        self.file_name = None
+        self.c = None
 
     def kMeansCluster(self, k, reindex=False):
+        self.file_name = self.documentEmbedding.file_name + "_cluster_" + str(k)
         file_name = self.documentEmbedding.save_folder + self.documentEmbedding.file_name + "_cluster_" + str(k)
         if os.path.isfile(file_name) and not reindex:
-            self.inverted_index = pickle.load(open(file_name, "rb"))
+            loaded_file = pickle.load(open(file_name, "rb"))
+            self.inverted_index = loaded_file["inverted_index"]
+            self.centroids = loaded_file["centroids"]
             return
 
         kmeans = KMeans(n_clusters=k)
@@ -36,14 +41,18 @@ class ClustertedDocumentEmbedding(QueryProcessor):
                 self.inverted_index[label] = []
             self.inverted_index[label].append(doc_idx)
 
-        pickle.dump(self.inverted_index, open(file_name, "wb"))
+        pickle.dump({"inverted_index": self.inverted_index, "centroids": self.centroids}, open(file_name, "wb"))
 
     def computeCentroid(self, cluster):
         pass
 
-    def processQuery(self, query:str, k:int, c:int = 5):
+    def set_c_value(self, c):
+        self.c = c
+
+    def processQuery(self, query:str, k:int):
+        assert self.c is not None
         query_vector = self.documentEmbedding.model.encode([query])
-        return self.getDocuments(query_vector, c, k)
+        return self.getDocuments(query_vector, self.c, k)
 
     def getDocuments(self, query_embedding, c, k, embeddings = None, id_mapping = None, __cluster_depth = None):
         """

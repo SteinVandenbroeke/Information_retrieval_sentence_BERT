@@ -7,5 +7,8 @@ from heapq import heappush, nlargest
 
 
 class QueryProcessor:
+    def __init__(self):
+        self.file_name = None
+
     def processQuery(self, query, k):
         raise NotImplementedError()

@@ -1,6 +1,6 @@
 import datetime
 import os
-
+from tqdm import tqdm
 import pandas as pd
 
 from src.queryProcessor import QueryProcessor
@@ -63,6 +63,17 @@ def create_result_csv(queryProcessing, small = True):
 
 def evaluation(query_processing: QueryProcessor, small=True):
     start_time = datetime.datetime.now()
+    add_text = ""
+    if hasattr(query_processing, "c") and query_processing.c != None:
+        add_text = "_c_" + str(query_processing.c)
+    if not os.path.isdir("../evaluations/"):
+        os.makedirs("../evaluations/")
+    evalutation_file = "../evaluations/"+ "eval_" + query_processing.file_name + "_" + str(small)  + add_text + ".txt"
+    if os.path.isfile(evalutation_file):
+        with open(evalutation_file, "r+") as file:
+            # Reading from a file
+            print(file.read())
+        return
 
     print("Testing queries for ", "small" if small else "big", " database:")
     query_path = "../queries/dev_queries" + ("_small.csv" if small else ".csv")
@@ -79,7 +90,7 @@ def evaluation(query_processing: QueryProcessor, small=True):
     sumedP1 = 0.0
     sumedR1 = 0.0
     total = 0
-    for q in query_data.values[:1000]:
+    for q in tqdm(query_data.values[:1000]):
         query_id = q[0]
         query = q[1]
         results = []
@@ -120,6 +131,15 @@ def evaluation(query_processing: QueryProcessor, small=True):
     print(f"MAP@3: {sumedP3/total} MAR@3: {sumedR3/total}")
     print(f"MAP@5: {sumedP5/total} MAR@5: {sumedR5/total}")
     print(f"MAP@10: {sumedP10 / total} MAR@10: {sumedR10 / total}")
+
+    with open(evalutation_file, "w") as file1:
+        # Writing data to a file
+        file1.write(f"Query time: {end_time_query_test - start_time}\n")
+        file1.write(f"MAP@1: {sumedP1 / total} MAR@1: {sumedR1 / total}"+ "\n")
+        file1.write(f"MAP@3: {sumedP3 / total} MAR@3: {sumedR3 / total}"+ "\n")
+        file1.write(f"MAP@5: {sumedP5 / total} MAR@5: {sumedR5 / total}"+ "\n")
+        file1.write(f"MAP@10: {sumedP10 / total} MAR@10: {sumedR10 / total}"+ "\n")
+
     return {
         "QueryTime": end_time_query_test - start_time,
         "MAP@1": sumedP1 / total,

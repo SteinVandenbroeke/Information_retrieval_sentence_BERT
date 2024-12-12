@@ -25,15 +25,19 @@ def part_two():
     time_elapsed = (time.perf_counter() - time_start)
     print("Embedding creation/loading time:", time_elapsed)
 
-    print("Create clusters")
-    time_start = time.perf_counter()
-    clusterted_doc_embeddings = ClustertedDocumentEmbedding(documentEmbedding)
-    clusterted_doc_embeddings.kMeansCluster(10)
-    time_elapsed = (time.perf_counter() - time_start)
-    print("Cluster creation/loading time:", time_elapsed)
+    for c, k in [(5,100),(5,500),(10,100),(50,500),(50,500)]:
+        print("Create clusters")
+        time_start = time.perf_counter()
+        clusterted_doc_embeddings = ClustertedDocumentEmbedding(documentEmbedding)
+        clusterted_doc_embeddings.set_c_value(c)
+        clusterted_doc_embeddings.kMeansCluster(k)
+        time_elapsed = (time.perf_counter() - time_start)
+        print("Cluster creation/loading time:", time_elapsed)
 
-    print("Evaluation")
-    evaluation(clusterted_doc_embeddings, False)
+        print("Evaluation")
+        evaluation(clusterted_doc_embeddings, False)
+
+
     print("\n")
 
 

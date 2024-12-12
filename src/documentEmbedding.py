@@ -18,8 +18,8 @@ class DocumentEmbedding(QueryProcessor):
         self.model = model
         self.folders = {}
         self.doc_vectors = []
-        self.save_folder = "../document_embeddings"
-        self.file_name = "/" + file_name
+        self.save_folder = "../document_embeddings" + "/"
+        self.file_name = file_name
         if mean_encodings:
             self.file_name += "_mean_" + str(mean_overlap) + "_" + str(mean_lenght)
         self.mean_encodings = mean_encodings
