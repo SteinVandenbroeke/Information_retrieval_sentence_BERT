@@ -5,6 +5,8 @@ import os
 import pickle
 
 from transformers import AutoTokenizer
+from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 
 class DocumentEmbedding:
@@ -86,7 +88,9 @@ class DocumentEmbedding:
             doc_text = f.read()
 
         if self.mean_encodings and doc_text != "":
+            # summary_text = self.summarize_large_document(doc_text)
             array_to_add.append(tuple((path, self.__get_mean_encoding(doc_text, 256, 20, tokenizer))))
         elif doc_text != "":
+            # summary_text = self.summarize_large_document(doc_text)
             array_to_add.append(tuple((path, np.array(self.model.encode(doc_text)))))
 

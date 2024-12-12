@@ -18,12 +18,14 @@ def test_queries(queryProcessing, small = True):
         query_id = q[0]
         query = q[1]
         result = []
-        for i in queryProcessing.processQuery(query,10):
+        for i in queryProcessing.processQuery(query,1):
             result.append(int(i.replace(".txt","").split("output_")[1]))
 
         query_result_doc = query_result_data[query_result_data['Query_number'] == query_id]['doc_number'].tolist()
-        print("matched item", len(list(set(result).intersection(set(query_result_doc)))))
-        if query_result_doc in result:
+        intersect = list(set(result).intersection(set(query_result_doc)))
+        print("matched items", intersect)
+
+        if len(intersect) > 0:
             passes += 1
             print("passed")
         else:
