@@ -5,12 +5,10 @@ import os
 import pickle
 
 from transformers import AutoTokenizer
-from transformers import pipeline
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 
 class DocumentEmbedding:
-    def __init__(self,dataset_location, model, pre_save_path, mean_encodings = False):
+    def __init__(self,dataset_location, model, pre_save_path, mean_encodings = False, mean_overlap = 20, mean_lenght = 256):
         self.dataset_location = dataset_location
         self.model = model
         self.folders = {}
@@ -18,6 +16,8 @@ class DocumentEmbedding:
         self.document_embeddings = "../document_embeddings"
         self.pre_save_path = "/" + pre_save_path
         self.mean_encodings = mean_encodings
+        self.mean_overlap = mean_overlap
+        self.mean_lenght = mean_lenght
         if not os.path.exists(self.dataset_location):
             raise Exception("ERROR: path not found:" + self.dataset_location)
         if not os.path.isdir(self.document_embeddings):
@@ -35,7 +35,7 @@ class DocumentEmbedding:
                 if d.endswith('.txt'):
                     file_path = os.path.join(self.dataset_location, d)
                     self.__index_document(file_path, self.doc_vectors, self.model.tokenizer)
-                if counter%1000 == 0:
+                if counter%1 == 0:
                     print(counter)
                 counter+=1
             pickle.dump(self.doc_vectors, open(self.document_embeddings+self.pre_save_path,"wb"))
@@ -60,7 +60,7 @@ class DocumentEmbedding:
             files = [d for d in os.listdir(self.dataset_location) if d.endswith('.txt')]
             chunks = [files[i:i + chunks_cnt] for i in range(0, len(files), chunks_cnt)]
 
-            pool = concurrent.futures.ThreadPoolExecutor(max_workers=12)
+            pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
             all_thread_results = []
             for chunk in chunks:
                 all_thread_results.append(pool.submit(self.__process_chunk, chunk, len(all_thread_results)))
@@ -89,7 +89,7 @@ class DocumentEmbedding:
 
         if self.mean_encodings and doc_text != "":
             # summary_text = self.summarize_large_document(doc_text)
-            array_to_add.append(tuple((path, self.__get_mean_encoding(doc_text, 256, 20, tokenizer))))
+            array_to_add.append(tuple((path, self.__get_mean_encoding(doc_text, self.mean_lenght, self.mean_overlap, tokenizer))))
         elif doc_text != "":
             # summary_text = self.summarize_large_document(doc_text)
             array_to_add.append(tuple((path, np.array(self.model.encode(doc_text)))))
