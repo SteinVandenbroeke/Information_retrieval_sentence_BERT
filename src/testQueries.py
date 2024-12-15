@@ -1,5 +1,7 @@
 import datetime
 import os
+import pickle
+
 from tqdm import tqdm
 import pandas as pd
 
@@ -60,7 +62,6 @@ def create_result_csv(queryProcessing, small = True):
     end_time_query_test = datetime.datetime.now()
     print("test csv time: ", end_time_query_test - start_time)
 
-
 def evaluation(query_processing: QueryProcessor, small=True):
     start_time = datetime.datetime.now()
     add_text = ""
@@ -70,9 +71,12 @@ def evaluation(query_processing: QueryProcessor, small=True):
         os.makedirs("../evaluations/")
     evalutation_file = "../evaluations/"+ "eval_" + query_processing.file_name + "_" + str(small)  + add_text + ".txt"
     if os.path.isfile(evalutation_file):
-        with open(evalutation_file, "r+") as file:
-            # Reading from a file
-            print(file.read())
+        evaluation_result = pickle.load(open(evalutation_file, "rb"))
+        print("Query time: ", evaluation_result["QueryTime"])
+        print(f"MAP@1: {evaluation_result["MAP@1"]} MAR@1: {evaluation_result["MAR@1"]}")
+        print(f"MAP@3: {evaluation_result["MAP@3"]} MAR@3: {evaluation_result["MAR@3"]}")
+        print(f"MAP@5: {evaluation_result["MAP@5"]} MAR@5: {evaluation_result["MAR@5"]}")
+        print(f"MAP@10: {evaluation_result["MAP@10"]} MAR@10: {evaluation_result["MAR@10"]}")
         return
 
     print("Testing queries for ", "small" if small else "big", " database:")
@@ -126,21 +130,8 @@ def evaluation(query_processing: QueryProcessor, small=True):
         #     print("done evaluating: ", total)
 
     end_time_query_test = datetime.datetime.now()
-    print("Query time: ", end_time_query_test - start_time)
-    print(f"MAP@1: {sumedP1/total} MAR@1: {sumedR1/total}")
-    print(f"MAP@3: {sumedP3/total} MAR@3: {sumedR3/total}")
-    print(f"MAP@5: {sumedP5/total} MAR@5: {sumedR5/total}")
-    print(f"MAP@10: {sumedP10 / total} MAR@10: {sumedR10 / total}")
 
-    with open(evalutation_file, "w") as file1:
-        # Writing data to a file
-        file1.write(f"Query time: {end_time_query_test - start_time}\n")
-        file1.write(f"MAP@1: {sumedP1 / total} MAR@1: {sumedR1 / total}"+ "\n")
-        file1.write(f"MAP@3: {sumedP3 / total} MAR@3: {sumedR3 / total}"+ "\n")
-        file1.write(f"MAP@5: {sumedP5 / total} MAR@5: {sumedR5 / total}"+ "\n")
-        file1.write(f"MAP@10: {sumedP10 / total} MAR@10: {sumedR10 / total}"+ "\n")
-
-    return {
+    evaluation_result = {
         "QueryTime": end_time_query_test - start_time,
         "MAP@1": sumedP1 / total,
         "MAR@1": sumedR1 / total,
@@ -151,4 +142,13 @@ def evaluation(query_processing: QueryProcessor, small=True):
         "MAP@10": sumedP10 / total,
         "MAR@10": sumedR10 / total,
     }
+
+    print("Query time: ", evaluation_result["QueryTime"])
+    print(f"MAP@1: {evaluation_result["MAP@1"]} MAR@1: {evaluation_result["MAR@1"]}")
+    print(f"MAP@3: {evaluation_result["MAP@3"]} MAR@3: {evaluation_result["MAR@3"]}")
+    print(f"MAP@5: {evaluation_result["MAP@5"]} MAR@5: {evaluation_result["MAR@5"]}")
+    print(f"MAP@10: {evaluation_result["MAP@10"]} MAR@10: {evaluation_result["MAR@10"]}")
+
+    pickle.dump(evaluation_result, open(evalutation_file, "wb"))
+    return evaluation_result
 
