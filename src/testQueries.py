@@ -74,7 +74,7 @@ def create_result_csv(queryProcessing, small = True):
     end_time_query_test = datetime.datetime.now()
     print("test csv time: ", end_time_query_test - start_time)
 
-def evaluation(query_processing: QueryProcessor, small=True):
+def evaluation(query_processing: QueryProcessor, small=True, sub_folder="", add_to_file_name = ""):
     """
     calculates the MAP and MAR for different k values and prints the results
     :param query_processing:  the query processor to use
@@ -85,9 +85,9 @@ def evaluation(query_processing: QueryProcessor, small=True):
     add_text = ""
     if hasattr(query_processing, "c") and query_processing.c != None:
         add_text = "_c_" + str(query_processing.c)
-    if not os.path.isdir("../evaluations/"):
-        os.makedirs("../evaluations/")
-    evalutation_file = "../evaluations/"+ "eval_" + query_processing.file_name + "_" + str(small)  + add_text + ".txt"
+    if not os.path.isdir("../evaluations/" + sub_folder + "/"):
+        os.makedirs("../evaluations/"  + sub_folder + "/")
+    evalutation_file = "../evaluations/"  + sub_folder  + "/" + "eval_" + query_processing.file_name + "_" + str(small)  + add_text + add_to_file_name + ".txt"
     if os.path.isfile(evalutation_file):
         evaluation_result = pickle.load(open(evalutation_file, "rb"))
         print("Query time: ", evaluation_result["QueryTime"])
@@ -95,7 +95,7 @@ def evaluation(query_processing: QueryProcessor, small=True):
         print(f"MAP@3: {evaluation_result["MAP@3"]} MAR@3: {evaluation_result["MAR@3"]}")
         print(f"MAP@5: {evaluation_result["MAP@5"]} MAR@5: {evaluation_result["MAR@5"]}")
         print(f"MAP@10: {evaluation_result["MAP@10"]} MAR@10: {evaluation_result["MAR@10"]}")
-        return
+        return evaluation_result
 
     print("Testing queries for ", "small" if small else "big", " database:")
     query_path = "../queries/dev_queries" + ("_small.csv" if small else ".csv")

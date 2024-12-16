@@ -14,6 +14,15 @@ from src.queryProcessor import QueryProcessor
 
 class DocumentEmbedding(QueryProcessor):
     def __init__(self,dataset_location:str, model:SentenceTransformer, file_name:str, mean_encodings:bool = False, mean_overlap:int = 20, mean_lenght:int = 256):
+        """
+         Does create vector embeddings call the pretrain_dataset or pretrain_dataset_parallel function
+        :param dataset_location: location to all the txt files
+        :param model: SentenceTransformer model to use
+        :param file_name: name to save and load the embeddings
+        :param mean_encodings: use mean encoding so file truncation is not needed
+        :param mean_overlap: the overlap between the two sentences
+        :param mean_lenght: the length of each chunk (best set to size of model)
+        """
         self.dataset_location = dataset_location
         self.model = model
         self.folders = {}
@@ -46,7 +55,7 @@ class DocumentEmbedding(QueryProcessor):
                 if d.endswith('.txt'):
                     file_path = os.path.join(self.dataset_location, d)
                     self.__index_document(file_path, self.doc_vectors, self.model.tokenizer)
-                if counter%1 == 0:
+                if counter%100 == 0:
                     print(counter)
                 counter+=1
             pickle.dump(self.doc_vectors, open(self.save_folder + self.file_name, "wb"))

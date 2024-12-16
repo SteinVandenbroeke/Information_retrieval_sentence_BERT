@@ -10,14 +10,20 @@ from sklearn.preprocessing import StandardScaler
 
 from src.documentEmbedding import DocumentEmbedding
 from src.queryProcessor import QueryProcessor
+import matplotlib.pyplot as plt
 
 
 class ClustertedDocumentEmbedding(QueryProcessor):
-    def __init__(self, documentEmbedding: DocumentEmbedding, cluster_depth:int = 1):
+    def __init__(self, documentEmbedding: DocumentEmbedding):
+        """
+        Does not create the cluster use kMeansCluster to do this
+        :param documentEmbedding: the document embedding that needs to be clustered
+        :param cluster_depth:
+        """
         self.documentEmbedding = documentEmbedding
         self.centroids = []
         self.inverted_index = {}
-        self.cluster_depth = cluster_depth
+        self.cluster_depth = 1
         self.file_name = None
         self.c = None
 
@@ -69,35 +75,35 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         query_vector = self.documentEmbedding.model.encode([query])
         return self.getDocuments(query_vector, self.c, k)
 
-    def getDocuments(self, query_embedding, c, k, embeddings = None, id_mapping = None, __cluster_depth = None):
+    def getDocuments(self, query_embedding, c, k, __embeddings = None, __id_mapping = None, __cluster_depth = None):
         """
         calculates the similarity between query and documents to retrieve the most relevant documents
         :param query_embedding: the vector representation of the query
         :param c: how many clusters to search
         :param k: amount of return doc
-        :param embeddings: embeddings to search in
-        :param id_mapping:
-        :param __cluster_depth: the depth of the index, used for recursive calls
+        :param __embeddings: -internal- embeddings used for recursion
+        :param __id_mapping: -internal- mapping used for recursion
+        :param __cluster_depth: -internal- the depth of the index, used for recursive calls
         :return:
         """
-        if embeddings is None:
+        if __embeddings is None:
             embeddings = self.centroids
         if __cluster_depth is None:
             __cluster_depth = self.cluster_depth
-        if id_mapping is None:
+        if __id_mapping is None:
             id_mapping = self.inverted_index
 
-        similarities = cosine_similarity(query_embedding, embeddings)[0]
+        similarities = cosine_similarity(query_embedding, __embeddings)[0]
         if __cluster_depth <= 0:
             similarities_indexes = heapq.nlargest(k, enumerate(similarities), itemgetter(1))
-            return [id_mapping[match[0]] for match in similarities_indexes]
+            return [__id_mapping[match[0]] for match in similarities_indexes]
 
         similarities_indexes = heapq.nlargest(c, enumerate(similarities), itemgetter(1))
         relevant_docs = []
         #for cluster_id in best_clusters:
             # Retrieve relevant documents from the closest cluster
         for cluster_id_sim in similarities_indexes:
-            relevant_docs += id_mapping[cluster_id_sim[0]]
+            relevant_docs += __id_mapping[cluster_id_sim[0]]
 
         __cluster_depth -= 1
 
