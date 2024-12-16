@@ -8,12 +8,14 @@ class Summarization:
         self.tokenizer = tokenizer
         self.summarizer = summarizer
 
-    def summarize_large_document(self, document):
-
-        # Tokenize the input text
+    def summarize_large_document(self, document:str):
+        """
+        summarize a document using a summarizer model
+        :param document: the document to summarize
+        :return: the summarized document
+        """
         inputs = self.tokenizer(document, return_tensors="pt", max_length=16384, truncation=True)
 
-        # Generate a summary with a maximum of 512 tokens
         summary_ids = self.summarizer.generate(
             inputs["input_ids"],
             max_length=512,
@@ -22,6 +24,4 @@ class Summarization:
             num_beams=4,
             early_stopping=True,
         )
-
-        # Decode and print the summary
         return self.tokenizer.decode(summary_ids[0], skip_special_tokens=True)

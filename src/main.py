@@ -4,7 +4,11 @@ from testQueries import *
 from sentence_transformers import SentenceTransformer
 import time
 
+
 def part_one():
+    """
+    Tests embedding and retrieval with functionality of the first part of the assigment on the small dataset.
+    """
     print("====Part One====")
     print("----Small dataset----")
     documentEmbeddingSmall = DocumentEmbedding("../../datasets/full_docs_small", model, "vector_representations_small",
@@ -30,6 +34,10 @@ def part_one():
     print("\n")
 
 def evaluate_clusterings(documentEmbedding):
+    """
+    Tests clustering with different values of c and k (clustering)
+    :param documentEmbedding: the embedding where evaluation is performed
+    """
     print("start pretrain_dataset")
     time_start = time.perf_counter()
     documentEmbedding.pretrain_dataset_parallel(False)
@@ -49,6 +57,9 @@ def evaluate_clusterings(documentEmbedding):
         evaluation(clusterted_doc_embeddings, False)
 
 def part_two():
+    """
+    Tests embedding and retrieval with functionality of the first part of the assigment on the small dataset.
+    """
     print("====Part Two====")
     print("----Small dataset----")
     documentEmbedding = DocumentEmbedding("../../datasets/full_docs", model,"vector_representations_large", False)

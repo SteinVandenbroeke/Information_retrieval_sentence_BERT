@@ -9,6 +9,12 @@ from src.queryProcessor import QueryProcessor
 
 
 def test_queries(queryProcessing, small = True):
+    """
+    test a dataset with given queries and results
+    :param queryProcessing: the query processor to use
+    :param small: whether to use the small or big dataset
+    :return: the passed queries and the amount of queries tested
+    """
     print("Testing queries for ", "small" if small else "big", " database:")
     query_path = "../queries/dev_queries" + ("_small.csv" if small else ".csv")
     query_data = pd.read_csv(query_path, names=["Query number","Query"], skiprows=1)
@@ -39,6 +45,12 @@ def test_queries(queryProcessing, small = True):
     return (passes, passes+fails)
 
 def create_result_csv(queryProcessing, small = True):
+    """
+    create a result csv file containing the queries and their results
+    :param queryProcessing: the query processor to use
+    :param small: wheter to use the small or big dataset
+    :return:
+    """
     start_time = datetime.datetime.now()
 
     print("Testing queries for ", "small" if small else "big", " database:")
@@ -63,6 +75,12 @@ def create_result_csv(queryProcessing, small = True):
     print("test csv time: ", end_time_query_test - start_time)
 
 def evaluation(query_processing: QueryProcessor, small=True):
+    """
+    calculates the MAP and MAR for different k values and prints the results
+    :param query_processing:  the query processor to use
+    :param small: whether to use the small or big dataset
+    :return: the resulted MAP and MAR
+    """
     start_time = datetime.datetime.now()
     add_text = ""
     if hasattr(query_processing, "c") and query_processing.c != None:

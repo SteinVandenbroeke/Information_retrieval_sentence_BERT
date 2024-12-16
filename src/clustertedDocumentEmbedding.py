@@ -22,6 +22,12 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         self.c = None
 
     def kMeansCluster(self, k, reindex=False):
+        """
+        indexes the embeddings using k-means clustering
+        :param k: the amount of clusters
+        :param reindex: if true, the index is computed again and overwritten. if false, get index from file and skip
+        :return:
+        """
         self.file_name = self.documentEmbedding.file_name + "_cluster_" + str(k)
         file_name = self.documentEmbedding.save_folder + self.documentEmbedding.file_name + "_cluster_" + str(k)
         if os.path.isfile(file_name) and not reindex:
@@ -43,24 +49,35 @@ class ClustertedDocumentEmbedding(QueryProcessor):
 
         pickle.dump({"inverted_index": self.inverted_index, "centroids": self.centroids}, open(file_name, "wb"))
 
-    def computeCentroid(self, cluster):
-        pass
 
     def set_c_value(self, c):
+        """
+        set self.c value
+        :param c: c value
+        :return:
+        """
         self.c = c
 
     def processQuery(self, query:str, k:int):
+        """
+        processes a given query with index of embeddings
+        :param query: the query in string format
+        :param k: amount of relevant documents to retrieve
+        :return: relevant documents given the query
+        """
         assert self.c is not None
         query_vector = self.documentEmbedding.model.encode([query])
         return self.getDocuments(query_vector, self.c, k)
 
     def getDocuments(self, query_embedding, c, k, embeddings = None, id_mapping = None, __cluster_depth = None):
         """
-        :param query_embedding:
+        calculates the similarity between query and documents to retrieve the most relevant documents
+        :param query_embedding: the vector representation of the query
         :param c: how many clusters to search
         :param k: amount of return doc
         :param embeddings: embeddings to search in
-        :param __cluster_depth:
+        :param id_mapping:
+        :param __cluster_depth: the depth of the index, used for recursive calls
         :return:
         """
         if embeddings is None:
