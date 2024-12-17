@@ -54,7 +54,7 @@ def evaluate_clusterings(documentEmbedding):
         time_start = time.perf_counter()
         clusterted_doc_embeddings = ClustertedDocumentEmbedding(documentEmbedding)
         clusterted_doc_embeddings.kMeansCluster(c)
-        clusterted_doc_embeddings.set_c_value(t)
+        clusterted_doc_embeddings.set_t_value(t)
         time_elapsed = (time.perf_counter() - time_start)
         print("Cluster creation/loading time:", time_elapsed)
 
@@ -104,12 +104,20 @@ def find_optimal_mean_offset():
     print("Best offset: ", best_offset)
     return best_offset["MAP@1"][0]
 
+def create_csv_large_dataset():
+    """
+    Create the csv file
+    :return:
+    """
+    documentEmbedding = DocumentEmbedding("../../datasets/full_docs", model, "vector_representations_large", True)
+    clusterted_doc_embeddings = ClustertedDocumentEmbedding(documentEmbedding)
+    clusterted_doc_embeddings.kMeansCluster(50)
+    clusterted_doc_embeddings.set_t_value(5)
+    create_result_csv(clusterted_doc_embeddings, False)
+
 if __name__ == '__main__':
     model = SentenceTransformer("all-MiniLM-L6-v2")
     part_one()
     part_two()
-    tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/all-MiniLM-L6-v2')
-    total = 0
-    counter = 0
-
-    #find_optimal_mean_offset()
+    create_csv_large_dataset()
+    find_optimal_mean_offset()

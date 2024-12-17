@@ -63,12 +63,13 @@ def create_result_csv(queryProcessing, small = True):
         os.remove("../results/result.csv")
     with open('../results/result.csv', 'w') as file:
         file.write(f"Query_number,doc_number\n")
-        for q in query_data.values:
+        for q in tqdm(query_data.values):
             query_id = q[0]
             query = q[1]
             results = []
             for i in queryProcessing.processQuery(query,10):
-                result.append(int(i.replace(".txt", "").split("output_")[1]))
+                results.append(int(i.replace(".txt", "").split("output_")[1]))
+
             for result in results:
                 file.write(f"{int(query_id)},{int(result)}\n")
     end_time_query_test = datetime.datetime.now()
@@ -83,8 +84,8 @@ def evaluation(query_processing: QueryProcessor, small=True, sub_folder="", add_
     """
     start_time = datetime.datetime.now()
     add_text = ""
-    if hasattr(query_processing, "c") and query_processing.c != None:
-        add_text = "_c_" + str(query_processing.c)
+    if hasattr(query_processing, "t") and query_processing.t != None:
+        add_text = "_c_" + str(query_processing.t)
     if not os.path.isdir("../evaluations/" + sub_folder + "/"):
         os.makedirs("../evaluations/"  + sub_folder + "/")
     evalutation_file = "../evaluations/"  + sub_folder  + "/" + "eval_" + query_processing.file_name + "_" + str(small)  + add_text + add_to_file_name + ".txt"

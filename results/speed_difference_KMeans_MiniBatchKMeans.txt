@@ -1,0 +1,61 @@
+----Speed Large dataset KMeans----
+Create clusters | n:1 | k:1
+Cluster creation/loading time: 1.483711191999987
+
+Create clusters | n:1 | k:5
+Cluster creation/loading time: 5.620316398
+
+Create clusters | n:1 | k:10
+Cluster creation/loading time: 4.069292386000029
+
+Create clusters | n:5 | k:50
+Cluster creation/loading time: 15.31609654700003
+
+Create clusters | n:5 | k:100
+Cluster creation/loading time: 23.106276429000104
+
+Create clusters | n:10 | k:100
+Cluster creation/loading time: 0.006721614999946723
+
+Create clusters | n:10 | k:500
+Cluster creation/loading time: 93.69418464599994
+
+Create clusters | n:50 | k:500
+Cluster creation/loading time: 0.008614389999934247
+
+Create clusters | n:10 | k:700
+Cluster creation/loading time: 123.71629838500007
+
+Create clusters | n:50 | k:700
+Cluster creation/loading time: 0.008110384000019621
+
+----Large dataset MiniBatchKMeans----
+Create clusters | n:1 | k:1
+Cluster creation/loading time: 0.8272832810000068
+
+Create clusters | n:1 | k:5
+Cluster creation/loading time: 1.3749555120000423
+
+Create clusters | n:1 | k:10
+Cluster creation/loading time: 1.2897635760000412
+
+Create clusters | n:5 | k:50
+Cluster creation/loading time: 1.5419195889999742
+
+Create clusters | n:5 | k:100
+Cluster creation/loading time: 1.6010791229999768
+
+Create clusters | n:10 | k:100
+Cluster creation/loading time: 0.006624301999977433
+
+Create clusters | n:10 | k:500
+Cluster creation/loading time: 3.953694772999995
+
+Create clusters | n:50 | k:500
+Cluster creation/loading time: 0.009053840999968088
+
+Create clusters | n:10 | k:700
+Cluster creation/loading time: 5.3865949839999985
+
+Create clusters | n:50 | k:700
+Cluster creation/loading time: 0.009788312000011956

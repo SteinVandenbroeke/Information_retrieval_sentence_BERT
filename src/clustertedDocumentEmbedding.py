@@ -4,7 +4,7 @@ import pickle
 from operator import itemgetter
 
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 
@@ -25,24 +25,24 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         self.inverted_index = {}
         self.cluster_depth = 1
         self.file_name = None
-        self.c = None
+        self.t = None
 
-    def kMeansCluster(self, k, reindex=False):
+    def kMeansCluster(self, c, reindex=False):
         """
         indexes the embeddings using k-means clustering
-        :param k: the amount of clusters
+        :param c: the amount of clusters
         :param reindex: if true, the index is computed again and overwritten. if false, get index from file and skip
         :return:
         """
-        self.file_name = self.documentEmbedding.file_name + "_cluster_" + str(k)
-        file_name = self.documentEmbedding.save_folder + self.documentEmbedding.file_name + "_cluster_" + str(k)
+        self.file_name = self.documentEmbedding.file_name + "_cluster_" + str(c)
+        file_name = self.documentEmbedding.save_folder + self.documentEmbedding.file_name + "_cluster_" + str(c)
         if os.path.isfile(file_name) and not reindex:
             loaded_file = pickle.load(open(file_name, "rb"))
             self.inverted_index = loaded_file["inverted_index"]
             self.centroids = loaded_file["centroids"]
             return
 
-        kmeans = KMeans(n_clusters=k)
+        kmeans = KMeans(n_clusters=c)
         kmeans.fit([e[1] for e in self.documentEmbedding.doc_vectors])
 
         cluster_labels = kmeans.labels_
@@ -56,13 +56,13 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         pickle.dump({"inverted_index": self.inverted_index, "centroids": self.centroids}, open(file_name, "wb"))
 
 
-    def set_c_value(self, c):
+    def set_t_value(self, t):
         """
-        set self.c value
-        :param c: c value
+        set self.t value, t represents the amount of cluster to search through
+        :param t: t value
         :return:
         """
-        self.c = c
+        self.t = t
 
     def processQuery(self, query:str, k:int):
         """
@@ -71,15 +71,15 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         :param k: amount of relevant documents to retrieve
         :return: relevant documents given the query
         """
-        assert self.c is not None
+        assert self.t is not None
         query_vector = self.documentEmbedding.model.encode([query])
-        return self.getDocuments(query_vector, self.c, k)
+        return self.getDocuments(query_vector, self.t, k)
 
-    def getDocuments(self, query_embedding, c, k, __embeddings = None, __id_mapping = None, __cluster_depth = None):
+    def getDocuments(self, query_embedding, t, k, __embeddings = None, __id_mapping = None, __cluster_depth = None):
         """
         calculates the similarity between query and documents to retrieve the most relevant documents
         :param query_embedding: the vector representation of the query
-        :param c: how many clusters to search
+        :param t: how many clusters to search
         :param k: amount of return doc
         :param __embeddings: -internal- embeddings used for recursion
         :param __id_mapping: -internal- mapping used for recursion
@@ -87,18 +87,18 @@ class ClustertedDocumentEmbedding(QueryProcessor):
         :return:
         """
         if __embeddings is None:
-            embeddings = self.centroids
+            __embeddings = self.centroids
         if __cluster_depth is None:
             __cluster_depth = self.cluster_depth
         if __id_mapping is None:
-            id_mapping = self.inverted_index
+            __id_mapping = self.inverted_index
 
         similarities = cosine_similarity(query_embedding, __embeddings)[0]
         if __cluster_depth <= 0:
             similarities_indexes = heapq.nlargest(k, enumerate(similarities), itemgetter(1))
             return [__id_mapping[match[0]] for match in similarities_indexes]
 
-        similarities_indexes = heapq.nlargest(c, enumerate(similarities), itemgetter(1))
+        similarities_indexes = heapq.nlargest(t, enumerate(similarities), itemgetter(1))
         relevant_docs = []
         #for cluster_id in best_clusters:
             # Retrieve relevant documents from the closest cluster
@@ -107,4 +107,4 @@ class ClustertedDocumentEmbedding(QueryProcessor):
 
         __cluster_depth -= 1
 
-        return self.getDocuments(query_embedding, c, k, [self.documentEmbedding.doc_vectors[item][1] for item in relevant_docs], [self.documentEmbedding.doc_vectors[item][0] for item in relevant_docs], __cluster_depth)
+        return self.getDocuments(query_embedding, t, k, [self.documentEmbedding.doc_vectors[item][1] for item in relevant_docs], [self.documentEmbedding.doc_vectors[item][0] for item in relevant_docs], __cluster_depth)
